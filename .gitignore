@@ -1,0 +1,73 @@
+# =============================================================
+# College AI Knowledge Assistant - Git Ignore Rules
+# =============================================================
+
+# --- Environment Variables & Secrets ---
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
+*.crt
+
+# Never ignore environment template examples
+!.env.example
+!frontend/.env.example
+
+# --- Python & Virtual Environments ---
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+
+# --- Node.js & Frontend ---
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.next/
+frontend/.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Application Data, Uploaded PDFs & Local Qdrant ---
+data/documents/*
+!data/documents/.gitkeep
+data/qdrant_storage/*
+data/qdrant_storage/**/*
+!data/qdrant_storage/.gitkeep
+
+# Prevent accidental commit of loose or sample PDFs anywhere in workspace
+*.pdf
+**/*.pdf
+
+# --- Runtime Process State ---
+.dev-pids.json
+
+# --- Operating System & Editor Artifacts ---
+.DS_Store
+Thumbs.db
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~

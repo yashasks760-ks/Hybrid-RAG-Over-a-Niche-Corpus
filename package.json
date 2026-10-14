@@ -1,0 +1,17 @@
+{
+  "name": "hybrid-rag-niche-corpus",
+  "private": true,
+  "description": "Root workspace package script helper for College AI Knowledge Assistant",
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File .\\start-dev.ps1",
+    "stop": "powershell -ExecutionPolicy Bypass -File .\\stop-dev.ps1",
+    "dev": "powershell -ExecutionPolicy Bypass -File .\\start-dev.ps1",
+    "dev:all": "powershell -ExecutionPolicy Bypass -File .\\start-dev.ps1",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": ".\\venv\\Scripts\\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000",
+    "backend": ".\\venv\\Scripts\\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000",
+    "build": "npm --prefix frontend run build",
+    "frontend": "npm --prefix frontend run dev",
+    "test": ".\\venv\\Scripts\\python.exe -m pytest"
+  }
+}
