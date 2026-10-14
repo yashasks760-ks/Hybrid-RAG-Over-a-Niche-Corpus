@@ -5,10 +5,15 @@ const resolveApiBase = (): string => {
   const envUrl = (
     import.meta.env.VITE_API_BASE_URL ||
     import.meta.env.VITE_API_URL ||
-    '/api'
+    'https://hybrid-rag-over-a-niche-corpus.onrender.com/api'
   ).trim();
+
   const stripped = envUrl.replace(/\/+$/, '');
-  if (!stripped || stripped === '/api') return '/api';
+
+  if (!stripped || stripped === '/api') {
+    return 'https://hybrid-rag-over-a-niche-corpus.onrender.com/api';
+  }
+
   return stripped.endsWith('/api') ? stripped : `${stripped}/api`;
 };
 
