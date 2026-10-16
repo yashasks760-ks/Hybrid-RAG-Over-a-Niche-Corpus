@@ -5,7 +5,7 @@ import { SearchPanel } from './components/SearchPanel';
 import { ChatPanel } from './components/ChatPanel';
 import { SourceModal } from './components/SourceModal';
 import { DocumentItem, SearchResultItem, CitationItem } from './types';
-import { fetchDocuments, checkHealth } from './services/api';
+import { fetchDocuments, checkHealth, isLocalMode } from './services/api';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -35,7 +35,8 @@ export const App: React.FC = () => {
     async (isManualRetry = false): Promise<boolean> => {
       setIsCheckingHealth(true);
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutMs = isManualRetry ? 12000 : (isLocalMode() ? 5000 : 10000);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       try {
         const res = await checkHealth(controller.signal);
@@ -100,14 +101,26 @@ export const App: React.FC = () => {
                 <AlertTriangle className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-semibold text-rose-100">Backend Disconnected (HTTP 502 / Offline):</span>{' '}
+                <span className="font-semibold text-rose-100">
+                  {isLocalMode() ? 'Local Backend Offline:' : 'AI Backend Service Disconnected:'}
+                </span>{' '}
                 <span className="text-rose-200/90">
-                  Cannot reach FastAPI on <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono text-xs">127.0.0.1:8000</code>.
-                  After restarting your computer, run{' '}
-                  <code className="bg-rose-900/80 text-rose-100 px-1.5 py-0.5 rounded font-mono text-xs border border-rose-500/30 font-semibold">
-                    .\start-dev.ps1
-                  </code>{' '}
-                  in PowerShell to start the backend and embedded database.
+                  {isLocalMode() ? (
+                    <>
+                      Cannot reach local FastAPI on{' '}
+                      <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono text-xs">127.0.0.1:8000</code>.
+                      Run{' '}
+                      <code className="bg-rose-900/80 text-rose-100 px-1.5 py-0.5 rounded font-mono text-xs border border-rose-500/30 font-semibold">
+                        .\start-dev.ps1
+                      </code>{' '}
+                      in PowerShell to start the backend and embedded database.
+                    </>
+                  ) : (
+                    <>
+                      Cannot reach the cloud backend service. If the server is waking up from idle on Render, this may take 30–60 seconds.
+                      Please click <strong className="text-rose-100 font-semibold">Retry Connection</strong> to reconnect.
+                    </>
+                  )}
                 </span>
               </div>
             </div>

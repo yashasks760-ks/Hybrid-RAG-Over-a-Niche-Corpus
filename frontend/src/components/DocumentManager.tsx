@@ -12,7 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { DocumentItem } from '../types';
-import { uploadDocument, deleteDocument, retryDocument } from '../services/api';
+import { uploadDocument, deleteDocument, retryDocument, isLocalMode } from '../services/api';
 
 interface DocumentManagerProps {
   documents: DocumentItem[];
@@ -178,7 +178,14 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
               <span>
-                <strong>Backend Offline:</strong> Ingestion is disabled. Start FastAPI on <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono">127.0.0.1:8000</code> via <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono font-semibold">.\start-dev.ps1</code> to upload documents.
+                <strong>Backend Offline:</strong> Ingestion is disabled.{' '}
+                {isLocalMode() ? (
+                  <>
+                    Start FastAPI on <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono">127.0.0.1:8000</code> via <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono font-semibold">.\start-dev.ps1</code> to upload documents.
+                  </>
+                ) : (
+                  <>AI backend service is unreachable. If waking from sleep on Render, click Retry.</>
+                )}
               </span>
             </div>
             {onRetryConnection && (

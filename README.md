@@ -83,19 +83,20 @@ npm run dev
 ## Production Deployment
 
 ### 1. Backend on Render (Web Service)
+- Blueprint: You can deploy automatically using the included `render.yaml` or create a manual Web Service:
 - Root Directory: . (repository root)
 - Environment: Python
-- Build Command: pip install -r backend/requirements.txt
-- Start Command: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT --workers 1
-  (Note: Keep --workers 1 when using embedded local disk Qdrant storage to prevent database file locking across multiple processes).
+- Build Command: `pip install -r backend/requirements.txt` (or default `pip install -r requirements.txt`)
+- Start Command: `uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT --workers 1`
+  (Note: Keep `--workers 1` when using embedded local disk Qdrant storage to prevent database file locking across multiple processes).
 - Required Environment Variables on Render:
-  - APP_ENV=production
-  - LLM_PROVIDER=gemini
-  - LLM_MODEL=gemini-2.5-flash
-  - LLM_API_KEY=<your-gemini-api-key>
-  - CORS_ORIGINS=https://<your-vercel-frontend-domain>.vercel.app
+  - `APP_ENV=production`
+  - `LLM_PROVIDER=gemini`
+  - `LLM_MODEL=gemini-2.5-flash`
+  - `LLM_API_KEY=<your-gemini-api-key>`
+  - `CORS_ORIGINS=https://<your-vercel-frontend-domain>.vercel.app`
 - Persistent Storage:
-  Render free web services use ephemeral disk storage. To retain uploaded PDFs and embedded Qdrant vectors across restarts, attach a Render Persistent Disk (e.g., mounted to data/documents and data/qdrant_storage), or re-upload documents after service restarts.
+  Render free web services use ephemeral disk storage. To retain uploaded PDFs and embedded Qdrant vectors across restarts, attach a Render Persistent Disk (e.g., mounted to `data/documents` and `data/qdrant_storage`), or configure Qdrant Cloud (`QDRANT_URL`, `QDRANT_API_KEY`). Note: original PDFs are stored on disk in `DOCUMENT_STORAGE_DIR`, not inside Qdrant Cloud.
 
 ### 2. Frontend on Vercel
 - Framework Preset: Vite

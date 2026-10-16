@@ -5,7 +5,7 @@ Supports environment variables, .env file loading, and type-validated defaults.
 
 from pathlib import Path
 from typing import List, Optional
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,7 +27,15 @@ class Settings(BaseSettings):
     APP_TITLE: str = Field(default="College AI Knowledge Assistant", description="Application Title")
     API_HOST: str = Field(default="0.0.0.0", description="FastAPI host binding")
     API_PORT: int = Field(default=8000, description="FastAPI port binding")
+    PORT: Optional[int] = Field(default=None, description="Hosting platform assigned port (Render, Heroku, etc.)")
     API_PREFIX: str = Field(default="/api", description="Root API route prefix")
+
+    @model_validator(mode="after")
+    def resolve_platform_port(self):
+        """Automatically adopt hosting platform PORT if assigned (e.g. Render)."""
+        if self.PORT is not None:
+            self.API_PORT = self.PORT
+        return self
 
     # CORS
     CORS_ORIGINS: str = Field(
@@ -126,9 +134,9 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        """Return CORS origins parsed as a list."""
-        origins = [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
-        for local_origin in ["http://localhost:5173", "http://127.0.0.1:5173"]:
+        """Return CORS origins parsed as a list with whitespace and trailing slashes stripped."""
+        origins = [origin.strip().rstrip("/") for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        for local_origin in ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3000"]:
             if local_origin not in origins:
                 origins.append(local_origin)
         return origins

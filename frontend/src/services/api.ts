@@ -1,17 +1,32 @@
 import { DocumentItem, SearchResponse, ChatResponse, ChatMode } from '../types';
 
-// Configurable API Base URL for separate frontend/backend deployment
-const resolveApiBase = (): string => {
+/**
+ * Resolves the API base URL cleanly across development and production environments.
+ * - Local development: defaults to Vite's dev proxy '/api' unless VITE_API_BASE_URL is explicitly set.
+ * - Production (Vercel): uses VITE_API_BASE_URL (or VITE_API_URL), appending '/api' cleanly without trailing slashes.
+ */
+export const resolveApiBase = (): string => {
   const envUrl = (
     import.meta.env.VITE_API_BASE_URL ||
     import.meta.env.VITE_API_URL ||
-    'https://hybrid-rag-over-a-niche-corpus.onrender.com/api'
+    ''
   ).trim();
 
-  const stripped = envUrl.replace(/\/+$/, '');
+  // In local development, use Vite proxy '/api' by default to avoid CORS and port mismatches
+  if (import.meta.env.DEV) {
+    if (!envUrl || envUrl === '/api') {
+      return '/api';
+    }
+    const strippedDev = envUrl.replace(/\/+$/, '');
+    return strippedDev.endsWith('/api') ? strippedDev : `${strippedDev}/api`;
+  }
+
+  // In production (Vercel), prioritize VITE_API_BASE_URL with fallback to deployed Render backend
+  const rawUrl = envUrl || 'https://hybrid-rag-over-a-niche-corpus.onrender.com';
+  const stripped = rawUrl.replace(/\/+$/, '');
 
   if (!stripped || stripped === '/api') {
-    return 'https://hybrid-rag-over-a-niche-corpus.onrender.com/api';
+    return '/api';
   }
 
   return stripped.endsWith('/api') ? stripped : `${stripped}/api`;
@@ -19,6 +34,18 @@ const resolveApiBase = (): string => {
 
 export const API_BASE = resolveApiBase();
 export const getApiBaseUrl = (): string => API_BASE;
+
+/**
+ * Detects whether the frontend is in local mode or connected to a remote production backend.
+ */
+export const isLocalMode = (): boolean => {
+  return (
+    import.meta.env.DEV ||
+    API_BASE.startsWith('/') ||
+    API_BASE.includes('127.0.0.1') ||
+    API_BASE.includes('localhost')
+  );
+};
 
 /**
  * Returns the URL to directly view or download a document's raw PDF file,
@@ -35,7 +62,9 @@ export const getDocumentFileUrl = (docId: string, pageNumber?: number): string =
  */
 async function parseApiError(res: Response, defaultMessage: string): Promise<string> {
   if (res.status === 502) {
-    return 'Backend is unreachable (HTTP 502 Bad Gateway). Please ensure the FastAPI backend is running on 127.0.0.1:8000.';
+    return isLocalMode()
+      ? 'Backend is unreachable (HTTP 502 Bad Gateway). Please ensure the FastAPI backend is running on 127.0.0.1:8000 via .\\start-dev.ps1.'
+      : 'Backend service is temporarily unreachable (HTTP 502 Bad Gateway). If waking from sleep on Render, please wait 30–60 seconds and retry.';
   }
   if (res.status === 503) {
     return 'Backend service is temporarily unavailable (HTTP 503). Vector store or storage may still be initializing.';
@@ -50,6 +79,9 @@ async function parseApiError(res: Response, defaultMessage: string): Promise<str
     }
     if (data && data.error) {
       return typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+    }
+    if (data && data.errors && Array.isArray(data.errors)) {
+      return data.errors.join('; ');
     }
   } catch {
     // Response was not JSON (e.g. HTML proxy error)

@@ -31,7 +31,7 @@ import {
   ChatMode,
   Conversation,
 } from '../types';
-import { chatWithDocuments, getDocumentFileUrl } from '../services/api';
+import { chatWithDocuments, getDocumentFileUrl, isLocalMode } from '../services/api';
 import {
   loadConversations,
   saveConversation,
@@ -617,9 +617,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
                   <span>
-                    <strong>Backend Offline:</strong> Start FastAPI on{' '}
-                    <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono">127.0.0.1:8000</code>{' '}
-                    via <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono font-semibold">.\start-dev.ps1</code> to enable AI answers.
+                    <strong>Backend Offline:</strong>{' '}
+                    {isLocalMode() ? (
+                      <>
+                        Start FastAPI on{' '}
+                        <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono">127.0.0.1:8000</code>{' '}
+                        via <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono font-semibold">.\start-dev.ps1</code> to enable AI answers.
+                      </>
+                    ) : (
+                      <>AI backend service is unreachable. If waking from sleep on Render, click Retry.</>
+                    )}
                   </span>
                 </div>
                 {onRetryConnection && (

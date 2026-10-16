@@ -11,7 +11,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { SearchResponse, SearchResultItem } from '../types';
-import { searchDocuments } from '../services/api';
+import { searchDocuments, isLocalMode } from '../services/api';
 
 interface SearchPanelProps {
   onSelectSource: (source: SearchResultItem) => void;
@@ -100,7 +100,14 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
               <span>
-                <strong>Backend Offline:</strong> Start FastAPI on <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono">127.0.0.1:8000</code> via <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono font-semibold">.\start-dev.ps1</code> to search.
+                <strong>Backend Offline:</strong>{' '}
+                {isLocalMode() ? (
+                  <>
+                    Start FastAPI on <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono">127.0.0.1:8000</code> via <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono font-semibold">.\start-dev.ps1</code> to search.
+                  </>
+                ) : (
+                  <>AI backend service is unreachable. If waking from sleep on Render, click Retry.</>
+                )}
               </span>
             </div>
             {onRetryConnection && (

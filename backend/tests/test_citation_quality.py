@@ -91,7 +91,9 @@ def test_document_file_path_resolution(tmp_path):
     from backend.app.services.document_service import reset_document_service
 
     orig_dir = settings.DOCUMENT_STORAGE_DIR
+    orig_qdrant = settings.QDRANT_STORAGE_DIR
     settings.DOCUMENT_STORAGE_DIR = str(tmp_path)
+    settings.QDRANT_STORAGE_DIR = str(tmp_path / "qdrant")
     reset_document_service()
 
     try:
@@ -110,4 +112,5 @@ def test_document_file_path_resolution(tmp_path):
         assert missing is None
     finally:
         settings.DOCUMENT_STORAGE_DIR = orig_dir
+        settings.QDRANT_STORAGE_DIR = orig_qdrant
         reset_document_service()

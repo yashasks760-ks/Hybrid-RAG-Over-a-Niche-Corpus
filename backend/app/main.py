@@ -7,7 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from backend.app.api import chat, documents, search
 from backend.app.core.config import settings
-from backend.app.retrieval.vector_store import get_vector_store, reset_vector_store
+from backend.app.retrieval.embedder import get_embedding_service
+from backend.app.retrieval.vector_store import get_vector_store, is_client_active, reset_vector_store
 from backend.app.services.document_service import get_document_service
 
 
@@ -16,18 +17,39 @@ async def lifespan(app: FastAPI):
     """Application startup and shutdown lifecycle management."""
     try:
         # 1. Ensure storage directories exist
-        settings.ensure_storage_directories()
+        try:
+            settings.ensure_storage_directories()
+            print(f"[Startup] Storage directories verified: {settings.DOCUMENT_STORAGE_DIR}")
+        except Exception as exc:
+            print(f"[Startup ERROR] Failed to create storage directories: {exc}")
+            raise
 
         # 2. Initialize vector store collection
-        get_vector_store()
+        try:
+            vstore = get_vector_store()
+            backend_type = f"remote cluster ({settings.QDRANT_URL})" if settings.QDRANT_URL else f"embedded local disk ({settings.QDRANT_STORAGE_DIR})"
+            print(f"[Startup] Qdrant VectorStore initialized using {backend_type}.")
+        except Exception as exc:
+            print(f"[Startup ERROR] Failed to initialize VectorStore: {exc}")
+            raise
 
         # 3. Re-hydrate BM25 in-memory index from cached document chunks
-        rehydrated = get_document_service().rehydrate_bm25_on_startup()
-        print(f"[Startup] Rehydrated {rehydrated} chunks into BM25 keyword index.")
+        try:
+            rehydrated = get_document_service().rehydrate_bm25_on_startup()
+            print(f"[Startup] Rehydrated {rehydrated} chunks into BM25 keyword index.")
+        except Exception as exc:
+            print(f"[Startup WARNING] BM25 rehydration encountered an issue: {exc}")
+
+        # 4. Check LLM provider configuration
+        if not settings.LLM_API_KEY:
+            if settings.APP_ENV == "production":
+                print("[Startup WARNING] LLM_API_KEY is unset in production. AI generation requires LLM_API_KEY in Render environment variables.")
+            else:
+                print("[Startup NOTE] LLM_API_KEY is not set. Add LLM_API_KEY to your .env file to enable AI answers.")
 
         yield
     finally:
-        # 4. Graceful shutdown: close embedded Qdrant client and release locks
+        # 5. Graceful shutdown: close embedded Qdrant client and release locks
         print("[Shutdown] Closing VectorStore and releasing local Qdrant locks...")
         reset_vector_store()
 
@@ -278,22 +300,58 @@ async def health_check():
 
 @app.get("/api/health/ready")
 async def readiness_check():
-    """Readiness probe: validates dependencies and storage paths are available."""
-    storage_ready = True
+    """Readiness probe: validates storage paths, vector DB connectivity, and embedding models."""
+    errors = []
+    storage_status = "ready"
+    vector_status = "ready"
+    embedder_status = "ready"
+
+    # 1. Storage check
     try:
         settings.ensure_storage_directories()
     except Exception as exc:
-        storage_ready = False
+        storage_status = "error"
+        errors.append(f"Storage directory failure: {str(exc)}")
+
+    # 2. Vector DB check
+    try:
+        vstore = get_vector_store()
+        if not is_client_active(vstore.client):
+            vector_status = "error"
+            errors.append("Vector database client is inactive or collections are inaccessible.")
+    except Exception as exc:
+        vector_status = "error"
+        errors.append(f"Vector database initialization failure: {str(exc)}")
+
+    # 3. Embedder check
+    try:
+        embedder = get_embedding_service()
+        if embedder is None:
+            embedder_status = "error"
+            errors.append("Embedding service failed to initialize.")
+    except Exception as exc:
+        embedder_status = "error"
+        errors.append(f"Embedding service failure: {str(exc)}")
+
+    if errors:
         return JSONResponse(
             status_code=503,
-            content={"status": "not_ready", "error": f"Storage initialization failed: {str(exc)}"},
+            content={
+                "status": "not_ready",
+                "errors": errors,
+                "storage": storage_status,
+                "vector_db": vector_status,
+                "embedding_model": embedder_status,
+            },
         )
 
     return {
         "status": "ready",
-        "storage": "ready" if storage_ready else "error",
+        "storage": storage_status,
         "vector_db": "embedded_disk" if not settings.QDRANT_URL else "remote_cluster",
         "embedding_model": settings.EMBEDDING_MODEL,
+        "llm_provider": settings.LLM_PROVIDER,
+        "environment": settings.APP_ENV,
     }
 
 
