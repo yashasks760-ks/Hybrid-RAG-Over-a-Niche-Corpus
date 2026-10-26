@@ -67,6 +67,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
+    allow_origin_regex=r"^https:\/\/([a-zA-Z0-9_\-]+\.)*vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -288,6 +289,7 @@ async def root():
 
 
 @app.get("/api/health")
+@app.get("/health", include_in_schema=False)
 async def health_check():
     """Liveness probe: returns basic service health status."""
     return {
@@ -299,6 +301,7 @@ async def health_check():
 
 
 @app.get("/api/health/ready")
+@app.get("/health/ready", include_in_schema=False)
 async def readiness_check():
     """Readiness probe: validates storage paths, vector DB connectivity, and embedding models."""
     errors = []

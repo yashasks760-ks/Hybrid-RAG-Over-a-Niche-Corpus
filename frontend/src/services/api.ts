@@ -14,19 +14,19 @@ export const resolveApiBase = (): string => {
 
   // In local development, use Vite proxy '/api' by default to avoid CORS and port mismatches
   if (import.meta.env.DEV) {
-    if (!envUrl || envUrl === '/api') {
+    if (!envUrl || envUrl.replace(/\/+$/, '') === '/api') {
       return '/api';
     }
-    const strippedDev = envUrl.replace(/\/+$/, '');
+    const strippedDev = envUrl.replace(/\/+$/, '').replace(/\/api\/api(?:\/|$)/g, '/api');
     return strippedDev.endsWith('/api') ? strippedDev : `${strippedDev}/api`;
   }
 
   // In production (Vercel), prioritize VITE_API_BASE_URL.
   // Fall back to the deployed Render backend if VITE_API_BASE_URL is not set or set to '/api'.
-  const rawUrl = (!envUrl || envUrl === '/api')
+  const rawUrl = (!envUrl || envUrl.replace(/\/+$/, '') === '/api')
     ? 'https://hybrid-rag-over-a-niche-corpus.onrender.com'
     : envUrl;
-  const stripped = rawUrl.replace(/\/+$/, '');
+  let stripped = rawUrl.replace(/\/+$/, '').replace(/\/api\/api(?:\/|$)/g, '/api');
 
   return stripped.endsWith('/api') ? stripped : `${stripped}/api`;
 };
@@ -107,6 +107,34 @@ async function parseApiError(res: Response, defaultMessage: string): Promise<str
   return `${defaultMessage} (${res.status} ${res.statusText})`;
 }
 
+/**
+ * Normalizes low-level network errors and timeouts into actionable user-friendly messages.
+ * Handles Render cold starts (waking up from idle), local backend offline, and AbortErrors.
+ */
+function formatNetworkError(err: any, fallbackMessage: string): Error {
+  if (err?.name === 'AbortError') {
+    if (err.message && err.message.toLowerCase().includes('timed out')) {
+      return new Error(
+        `${fallbackMessage}: Request timed out. If waking from sleep on Render, please wait 30–60 seconds and retry.`
+      );
+    }
+    return err;
+  }
+  const msg = err?.message || '';
+  if (
+    msg.includes('Failed to fetch') ||
+    msg.includes('NetworkError') ||
+    msg.includes('Network request failed') ||
+    msg.includes('Load failed')
+  ) {
+    const detail = isLocalMode()
+      ? 'Backend is offline or unreachable on 127.0.0.1:8000. Please start the backend service.'
+      : 'Backend service is temporarily unreachable. If waking from sleep on Render, please wait 30–60 seconds and retry.';
+    return new Error(`${fallbackMessage}: ${detail}`);
+  }
+  return new Error(msg || fallbackMessage);
+}
+
 export async function checkHealth(signal?: AbortSignal): Promise<{ status: string; service: string }> {
   try {
     const res = await fetch(`${API_BASE}/health`, {
@@ -119,8 +147,7 @@ export async function checkHealth(signal?: AbortSignal): Promise<{ status: strin
     }
     return await res.json();
   } catch (err: any) {
-    if (err.name === 'AbortError') throw err;
-    throw new Error(err.message || 'Cannot reach backend server');
+    throw formatNetworkError(err, 'Cannot reach backend server');
   }
 }
 
@@ -136,8 +163,7 @@ export async function checkReadiness(signal?: AbortSignal): Promise<{ status: st
     }
     return await res.json();
   } catch (err: any) {
-    if (err.name === 'AbortError') throw err;
-    throw new Error(err.message || 'Readiness probe failed');
+    throw formatNetworkError(err, 'Readiness probe failed');
   }
 }
 
@@ -154,70 +180,91 @@ export async function fetchDocuments(signal?: AbortSignal): Promise<DocumentItem
     const data = await res.json();
     return data.documents || [];
   } catch (err: any) {
-    if (err.name === 'AbortError') throw err;
-    throw new Error(err.message || 'Failed to fetch documents');
+    throw formatNetworkError(err, 'Failed to fetch documents');
   }
 }
 
 export async function uploadDocument(
-  file: File
+  file: File,
+  signal?: AbortSignal
 ): Promise<{ message: string; document: DocumentItem; duplicate_detected: boolean }> {
-  const formData = new FormData();
-  formData.append('file', file);
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
 
-  const res = await fetch(`${API_BASE}/documents/upload`, {
-    method: 'POST',
-    body: formData,
-  });
+    const res = await fetch(`${API_BASE}/documents/upload`, {
+      method: 'POST',
+      body: formData,
+      signal,
+    });
 
-  if (!res.ok) {
-    const msg = await parseApiError(res, 'Upload failed');
-    throw new Error(msg);
-  }
-  return res.json();
-}
-
-export async function deleteDocument(docId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/documents/${docId}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) {
-    const msg = await parseApiError(res, 'Failed to delete document');
-    throw new Error(msg);
+    if (!res.ok) {
+      const msg = await parseApiError(res, 'Upload failed');
+      throw new Error(msg);
+    }
+    return await res.json();
+  } catch (err: any) {
+    throw formatNetworkError(err, 'Upload failed');
   }
 }
 
-export async function retryDocument(docId: string): Promise<DocumentItem> {
-  const res = await fetch(`${API_BASE}/documents/${docId}/retry`, {
-    method: 'POST',
-  });
-  if (!res.ok) {
-    const msg = await parseApiError(res, 'Retry failed');
-    throw new Error(msg);
+export async function deleteDocument(docId: string, signal?: AbortSignal): Promise<void> {
+  try {
+    const res = await fetch(`${API_BASE}/documents/${docId}`, {
+      method: 'DELETE',
+      signal,
+    });
+    if (!res.ok) {
+      const msg = await parseApiError(res, 'Failed to delete document');
+      throw new Error(msg);
+    }
+  } catch (err: any) {
+    throw formatNetworkError(err, 'Failed to delete document');
   }
-  return res.json();
+}
+
+export async function retryDocument(docId: string, signal?: AbortSignal): Promise<DocumentItem> {
+  try {
+    const res = await fetch(`${API_BASE}/documents/${docId}/retry`, {
+      method: 'POST',
+      signal,
+    });
+    if (!res.ok) {
+      const msg = await parseApiError(res, 'Retry failed');
+      throw new Error(msg);
+    }
+    return await res.json();
+  } catch (err: any) {
+    throw formatNetworkError(err, 'Retry failed');
+  }
 }
 
 export async function searchDocuments(
   query: string,
   topK: number = 5,
-  documentIds?: string[]
+  documentIds?: string[],
+  signal?: AbortSignal
 ): Promise<SearchResponse> {
-  const res = await fetch(`${API_BASE}/search`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query,
-      top_k: topK,
-      document_ids: documentIds && documentIds.length > 0 ? documentIds : undefined,
-    }),
-  });
+  try {
+    const res = await fetch(`${API_BASE}/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        top_k: topK,
+        document_ids: documentIds && documentIds.length > 0 ? documentIds : undefined,
+      }),
+      signal,
+    });
 
-  if (!res.ok) {
-    const msg = await parseApiError(res, 'Search query failed');
-    throw new Error(msg);
+    if (!res.ok) {
+      const msg = await parseApiError(res, 'Search query failed');
+      throw new Error(msg);
+    }
+    return await res.json();
+  } catch (err: any) {
+    throw formatNetworkError(err, 'Search query failed');
   }
-  return res.json();
 }
 
 export async function chatWithDocuments(
@@ -225,23 +272,29 @@ export async function chatWithDocuments(
   history: { role: string; content: string }[] = [],
   topK: number = 5,
   documentIds?: string[],
-  mode: ChatMode = 'notes'
+  mode: ChatMode = 'notes',
+  signal?: AbortSignal
 ): Promise<ChatResponse> {
-  const res = await fetch(`${API_BASE}/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      question,
-      history,
-      top_k: topK,
-      document_ids: documentIds && documentIds.length > 0 ? documentIds : undefined,
-      mode,
-    }),
-  });
+  try {
+    const res = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question,
+        history,
+        top_k: topK,
+        document_ids: documentIds && documentIds.length > 0 ? documentIds : undefined,
+        mode,
+      }),
+      signal,
+    });
 
-  if (!res.ok) {
-    const msg = await parseApiError(res, 'AI Chat failed');
-    throw new Error(msg);
+    if (!res.ok) {
+      const msg = await parseApiError(res, 'AI Chat failed');
+      throw new Error(msg);
+    }
+    return await res.json();
+  } catch (err: any) {
+    throw formatNetworkError(err, 'AI Chat failed');
   }
-  return res.json();
 }
