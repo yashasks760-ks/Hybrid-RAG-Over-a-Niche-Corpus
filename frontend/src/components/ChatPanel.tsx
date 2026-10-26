@@ -382,19 +382,20 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   };
 
   return (
-    <div className="relative max-w-5xl mx-auto py-5 px-4 flex flex-col h-[calc(100vh-5rem)]">
+    <div className="relative w-full max-w-5xl mx-auto py-2 sm:py-5 px-2 sm:px-4 flex flex-col flex-1 min-h-0 h-[calc(100dvh-7.5rem)] md:h-[calc(100dvh-5.5rem)]">
       {/* History Slide-over Drawer / Modal */}
       {isHistoryOpen && (
-        <div className="fixed inset-0 z-40 flex">
+        <div className="fixed inset-0 z-50 flex">
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"
             onClick={() => setIsHistoryOpen(false)}
+            aria-hidden="true"
           />
 
           {/* Drawer Content */}
-          <div className="relative w-full max-w-xs bg-slate-900 border-r border-slate-800 flex flex-col z-50 shadow-2xl h-full animate-fade-in">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="relative w-full max-w-xs bg-slate-900 border-r border-slate-800 flex flex-col z-50 shadow-2xl h-full animate-fade-in pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+            <div className="p-3.5 sm:p-4 border-b border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <History className="w-4 h-4 text-sky-400" />
                 <h3 className="font-semibold text-white text-sm">Chat History</h3>
@@ -402,7 +403,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               <button
                 type="button"
                 onClick={() => setIsHistoryOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
+                aria-label="Close history drawer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -412,7 +414,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
               <button
                 type="button"
                 onClick={() => handleNewChat()}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-semibold transition-all shadow-sm cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-semibold transition-all shadow-sm cursor-pointer min-h-[40px]"
               >
                 <Plus className="w-4 h-4" />
                 <span>New Conversation</span>
@@ -431,19 +433,19 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                     <div
                       key={c.id}
                       onClick={() => handleSelectConversation(c)}
-                      className={`group relative flex items-center justify-between p-2.5 rounded-xl text-xs cursor-pointer transition-all border ${
+                      className={`group relative flex items-center justify-between p-2.5 rounded-xl text-xs cursor-pointer transition-all border min-w-0 ${
                         isActive
                           ? 'bg-slate-800/90 border-sky-500/50 text-white font-medium shadow-sm'
                           : 'bg-slate-900/60 hover:bg-slate-800/50 border-slate-800 text-slate-300 hover:text-white'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 truncate mr-2">
+                      <div className="flex items-center gap-2.5 truncate mr-2 min-w-0">
                         <MessageSquare
                           className={`w-3.5 h-3.5 flex-shrink-0 ${
                             isActive ? 'text-sky-400' : 'text-slate-500'
                           }`}
                         />
-                        <div className="truncate">
+                        <div className="truncate min-w-0">
                           <p className="truncate text-xs">{c.title || 'Untitled Chat'}</p>
                           <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500">
                             <span className="capitalize">{c.mode}</span>
@@ -456,8 +458,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                       <button
                         type="button"
                         onClick={(e) => handleDeleteConversation(e, c.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-300 transition-all cursor-pointer flex-shrink-0"
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded hover:bg-rose-500/20 text-slate-500 hover:text-rose-300 transition-all cursor-pointer flex-shrink-0 min-w-[28px] min-h-[28px] flex items-center justify-center"
                         title="Delete conversation"
+                        aria-label="Delete conversation"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -474,7 +477,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 <button
                   type="button"
                   onClick={handleClearAllHistory}
-                  className="text-rose-400/80 hover:text-rose-300 transition-colors cursor-pointer"
+                  className="text-rose-400/80 hover:text-rose-300 transition-colors cursor-pointer py-1 px-1.5 rounded"
                 >
                   Clear All
                 </button>
@@ -485,13 +488,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       )}
 
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-800 gap-3">
-        <div className="flex items-center gap-2.5">
+      <div className="flex items-center justify-between pb-2.5 sm:pb-3.5 border-b border-slate-800 gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <button
             type="button"
             onClick={() => setIsHistoryOpen(true)}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-medium"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-medium flex-shrink-0 min-h-[36px]"
             title="Open Chat History"
+            aria-label="Open Chat History"
           >
             <History className="w-4 h-4 text-sky-400" />
             <span className="hidden sm:inline">History</span>
@@ -500,18 +504,20 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </span>
           </button>
 
-          <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+          <div className="h-6 w-px bg-slate-800 hidden sm:block flex-shrink-0" />
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-white leading-tight">AI Study Assistant</h2>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h2 className="text-sm sm:text-base font-bold text-white leading-tight truncate">
+                AI Study Assistant
+              </h2>
               {activeConvId && (
-                <span className="text-xs text-slate-400 truncate max-w-[200px] hidden md:inline">
+                <span className="text-xs text-slate-400 truncate max-w-[140px] md:max-w-[200px] hidden md:inline">
                   &bull; {conversations.find((c) => c.id === activeConvId)?.title || 'New Chat'}
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-[11px] sm:text-xs text-slate-400 truncate">
               {mode === 'notes' && 'Strictly grounded in uploaded college materials & citations'}
               {mode === 'general' && 'General AI tutor for coding, CS concepts & exam prep'}
               {mode === 'web' && 'Real-time live web search with verified sources'}
@@ -519,62 +525,68 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <button
             type="button"
             onClick={() => handleNewChat()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 text-xs font-semibold transition-colors border border-sky-500/30 cursor-pointer"
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 text-xs font-semibold transition-colors border border-sky-500/30 cursor-pointer min-h-[36px]"
             title="Start a new chat session"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>New Chat</span>
+            <span className="whitespace-nowrap">New Chat</span>
           </button>
         </div>
       </div>
 
       {/* Mode Selector Navigation */}
-      <div className="py-2.5 border-b border-slate-800/80">
-        <div className="flex items-center gap-2 p-1 bg-slate-900/90 border border-slate-800 rounded-xl overflow-x-auto">
+      <div className="py-2 border-b border-slate-800/80">
+        <div className="grid grid-cols-3 gap-1 sm:gap-2 p-1 bg-slate-900/90 border border-slate-800 rounded-xl">
           {/* Notes Mode */}
           <button
             type="button"
             onClick={() => handleModeChange('notes')}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[38px] truncate ${
               mode === 'notes'
                 ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-sm shadow-sky-500/10'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
             }`}
           >
-            <GraduationCap className={`w-4 h-4 ${mode === 'notes' ? 'text-sky-400' : 'text-slate-500'}`} />
-            <span>College Notes</span>
+            <GraduationCap className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${mode === 'notes' ? 'text-sky-400' : 'text-slate-500'}`} />
+            <span className="truncate">
+              <span className="hidden min-[400px]:inline">College </span>Notes
+            </span>
           </button>
 
           {/* General Learning Mode */}
           <button
             type="button"
             onClick={() => handleModeChange('general')}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[38px] truncate ${
               mode === 'general'
                 ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 shadow-sm shadow-indigo-500/10'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
             }`}
           >
-            <Brain className={`w-4 h-4 ${mode === 'general' ? 'text-indigo-400' : 'text-slate-500'}`} />
-            <span>General Learning</span>
+            <Brain className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${mode === 'general' ? 'text-indigo-400' : 'text-slate-500'}`} />
+            <span className="truncate">
+              <span className="hidden min-[400px]:inline">General </span>Learning
+            </span>
           </button>
 
           {/* Web Search Mode */}
           <button
             type="button"
             onClick={() => handleModeChange('web')}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer min-h-[38px] truncate ${
               mode === 'web'
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
             }`}
           >
-            <Globe className={`w-4 h-4 ${mode === 'web' ? 'text-emerald-400' : 'text-slate-500'}`} />
-            <span>Web Search</span>
+            <Globe className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${mode === 'web' ? 'text-emerald-400' : 'text-slate-500'}`} />
+            <span className="truncate">
+              Web<span className="hidden min-[400px]:inline"> Search</span>
+            </span>
           </button>
         </div>
       </div>
@@ -668,13 +680,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex gap-3 sm:gap-4 ${
+              className={`flex gap-2 sm:gap-4 ${
                 msg.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
               {msg.role === 'assistant' && (
                 <div
-                  className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center border mt-1 ${
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex-shrink-0 flex items-center justify-center border mt-1 ${
                     msg.mode === 'web'
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                       : msg.mode === 'general'
@@ -683,31 +695,31 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                   }`}
                 >
                   {msg.mode === 'web' ? (
-                    <Globe className="w-4 h-4" />
+                    <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   ) : msg.mode === 'general' ? (
-                    <Brain className="w-4 h-4" />
+                    <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   ) : (
-                    <GraduationCap className="w-4 h-4" />
+                    <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   )}
                 </div>
               )}
 
               <div
-                className={`max-w-[90%] sm:max-w-[82%] rounded-2xl p-4 sm:p-5 shadow-lg ${
+                className={`max-w-[92%] sm:max-w-[85%] rounded-2xl p-3 sm:p-5 shadow-lg ${
                   msg.role === 'user'
                     ? 'bg-sky-600 text-white rounded-br-none'
                     : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none'
                 }`}
               >
                 {/* Message Header */}
-                <div className="flex items-center justify-between gap-4 mb-2 pb-1 border-b border-slate-800/60">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold opacity-80">
+                <div className="flex items-center justify-between gap-2 sm:gap-4 mb-2 pb-1 border-b border-slate-800/60">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <span className="text-xs font-semibold opacity-80 whitespace-nowrap">
                       {msg.role === 'user' ? 'You' : 'Study Assistant'}
                     </span>
                     {msg.mode && (
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                        className={`text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full border whitespace-nowrap ${
                           msg.mode === 'notes'
                             ? 'bg-sky-500/10 text-sky-300 border-sky-500/30'
                             : msg.mode === 'general'
@@ -716,10 +728,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                         }`}
                       >
                         {msg.mode === 'notes'
-                          ? 'Notes Mode'
+                          ? 'Notes'
                           : msg.mode === 'general'
-                          ? 'General AI'
-                          : 'Web Search'}
+                          ? 'General'
+                          : 'Web'}
                       </span>
                     )}
                   </div>
@@ -789,16 +801,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                         return (
                           <div
                             key={cIdx}
-                            className="p-2 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all flex items-center justify-between gap-2 text-xs"
+                            className="p-2 rounded-xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all flex items-center justify-between gap-2 text-xs min-w-0"
                           >
                             <button
                               type="button"
                               onClick={() => onSelectCitation(cite)}
-                              className="flex items-center gap-2 truncate text-left group flex-1 cursor-pointer"
+                              className="flex items-center gap-2 truncate text-left group flex-1 min-w-0 cursor-pointer"
                               title={`Inspect excerpt from ${cite.filename}`}
                             >
                               <FileText className="w-3.5 h-3.5 text-sky-400 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                              <div className="truncate">
+                              <div className="truncate min-w-0">
                                 <span className="text-slate-200 font-medium truncate block text-xs group-hover:text-sky-300 transition-colors">
                                   {cite.filename}
                                 </span>
@@ -813,7 +825,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                                 href={getDocumentFileUrl(docId, cite.page_number)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800 hover:bg-sky-500/20 text-slate-300 hover:text-sky-300 border border-slate-700 hover:border-sky-500/40 text-[10px] font-semibold transition-all flex-shrink-0"
+                                className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-800 hover:bg-sky-500/20 text-slate-300 hover:text-sky-300 border border-slate-700 hover:border-sky-500/40 text-[10px] font-semibold transition-all flex-shrink-0 min-h-[30px]"
                                 title={`Open ${cite.filename} at page ${cite.page_number} in a new tab`}
                               >
                                 <span>PDF</span>
@@ -935,9 +947,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           e.preventDefault();
           if (isBackendHealthy && !isLoading) handleSend();
         }}
-        className="pt-3 border-t border-slate-800"
+        className="pt-2 sm:pt-3 border-t border-slate-800 pb-[env(safe-area-inset-bottom,0px)]"
       >
-        <div className="relative flex items-end bg-slate-900 border border-slate-800 rounded-2xl shadow-inner focus-within:border-sky-500/80 transition-colors p-2">
+        <div className="relative flex items-end gap-1.5 sm:gap-2 bg-slate-900 border border-slate-800 rounded-2xl shadow-inner focus-within:border-sky-500/80 transition-colors p-1.5 sm:p-2">
           <textarea
             ref={textareaRef}
             rows={1}
@@ -947,16 +959,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             disabled={isLoading || !isBackendHealthy}
             placeholder={
               !isBackendHealthy
-                ? 'Backend is offline — Start server with .\\start-dev.ps1 to chat...'
+                ? 'Backend offline — Start with .\\start-dev.ps1...'
                 : getPlaceholder()
             }
-            className="w-full pl-3 pr-12 py-1.5 bg-transparent text-white placeholder-slate-500 focus:outline-none text-xs sm:text-sm resize-none disabled:opacity-50 disabled:cursor-not-allowed max-h-36 overflow-y-auto"
+            className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 bg-transparent text-white placeholder-slate-500 focus:outline-none text-xs sm:text-sm resize-none disabled:opacity-50 disabled:cursor-not-allowed max-h-28 sm:max-h-36 overflow-y-auto leading-relaxed"
           />
 
           <button
             type="submit"
             disabled={isLoading || !isBackendHealthy || !inputQuestion.trim()}
-            className={`p-2.5 rounded-xl disabled:opacity-40 transition-all shadow-md flex-shrink-0 cursor-pointer ${
+            className={`p-2.5 min-w-[42px] min-h-[42px] sm:min-w-[44px] sm:min-h-[44px] flex items-center justify-center rounded-xl disabled:opacity-40 transition-all shadow-md flex-shrink-0 cursor-pointer ${
               mode === 'web'
                 ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold'
                 : mode === 'general'
@@ -968,17 +980,21 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
                 ? 'Backend is offline'
                 : 'Send question (Enter, Shift+Enter for newline)'
             }
+            aria-label="Send message"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex items-center justify-between px-2 pt-2 text-[11px] text-slate-500">
-          <span>
+        <div className="flex items-center justify-between px-2 pt-1.5 text-[11px] text-slate-500">
+          <span className="hidden sm:inline">
             Press <kbd className="px-1 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Enter</kbd> to send,{' '}
             <kbd className="px-1 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">Shift+Enter</kbd> for newline
           </span>
-          <span className="hidden sm:inline">
+          <span className="sm:hidden text-[11px] text-slate-400">
+            Tap Send to ask
+          </span>
+          <span>
             Mode: <strong className="text-slate-300 capitalize">{mode}</strong>
           </span>
         </div>

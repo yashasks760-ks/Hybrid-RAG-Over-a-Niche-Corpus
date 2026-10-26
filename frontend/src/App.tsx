@@ -81,7 +81,7 @@ export const App: React.FC = () => {
   }, [verifyHealth]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-sky-500/20 selection:text-sky-300">
+    <div className="min-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-sky-500/20 selection:text-sky-300 w-full overflow-x-hidden">
       {/* Top Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -94,23 +94,23 @@ export const App: React.FC = () => {
 
       {/* Backend Disconnected Warning Banner */}
       {!isBackendHealthy && hasAttemptedInitialCheck && (
-        <div className="bg-rose-950/40 border-b border-rose-500/30 px-4 py-3 sm:py-3.5 backdrop-blur-md animate-fade-in">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm">
-            <div className="flex items-start sm:items-center gap-3 text-rose-200">
+        <div className="bg-rose-950/40 border-b border-rose-500/30 px-3 sm:px-4 py-2.5 sm:py-3.5 backdrop-blur-md animate-fade-in">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 text-xs sm:text-sm">
+            <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 text-rose-200 min-w-0">
               <div className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 flex-shrink-0 mt-0.5 sm:mt-0">
                 <AlertTriangle className="w-4 h-4" />
               </div>
-              <div>
+              <div className="min-w-0 break-words">
                 <span className="font-semibold text-rose-100">
                   {isLocalMode() ? 'Local Backend Offline:' : 'AI Backend Service Disconnected:'}
                 </span>{' '}
-                <span className="text-rose-200/90">
+                <span className="text-rose-200/90 leading-relaxed">
                   {isLocalMode() ? (
                     <>
                       Cannot reach local FastAPI on{' '}
-                      <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono text-xs">127.0.0.1:8000</code>.
+                      <code className="bg-rose-900/60 px-1 py-0.5 rounded font-mono text-[11px] sm:text-xs break-all">127.0.0.1:8000</code>.
                       Run{' '}
-                      <code className="bg-rose-900/80 text-rose-100 px-1.5 py-0.5 rounded font-mono text-xs border border-rose-500/30 font-semibold">
+                      <code className="bg-rose-900/80 text-rose-100 px-1.5 py-0.5 rounded font-mono text-[11px] sm:text-xs border border-rose-500/30 font-semibold break-all">
                         .\start-dev.ps1
                       </code>{' '}
                       in PowerShell to start the backend and embedded database.
@@ -125,11 +125,12 @@ export const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 self-end sm:self-auto flex-shrink-0">
+            <div className="w-full sm:w-auto flex items-center justify-end sm:justify-start flex-shrink-0 pt-1 sm:pt-0">
               <button
+                type="button"
                 onClick={handleRetryConnection}
                 disabled={isCheckingHealth}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/30 font-medium transition-all text-xs disabled:opacity-50 cursor-pointer shadow-sm"
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-500/30 font-medium transition-all text-xs disabled:opacity-50 cursor-pointer shadow-sm min-h-[38px] sm:min-h-[34px]"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isCheckingHealth ? 'animate-spin' : ''}`} />
                 <span>{isCheckingHealth ? 'Checking...' : 'Retry Connection'}</span>
@@ -140,7 +141,7 @@ export const App: React.FC = () => {
       )}
 
       {/* Main View Area */}
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 flex flex-col min-w-0 w-full overflow-x-hidden">
         {activeTab === 'chat' && (
           <ChatPanel
             onSelectCitation={(cite) => setSelectedSource(cite)}

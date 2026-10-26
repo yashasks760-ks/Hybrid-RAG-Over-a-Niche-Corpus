@@ -21,15 +21,15 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, code }) => {
   };
 
   return (
-    <div className="my-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-md">
-      <div className="flex items-center justify-between px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-xs text-slate-400">
-        <span className="font-mono text-[11px] uppercase tracking-wider text-sky-400 font-semibold">
+    <div className="my-3 rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-md max-w-full">
+      <div className="flex items-center justify-between px-3 sm:px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-xs text-slate-400">
+        <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-sky-400 font-semibold">
           {language || 'code'}
         </span>
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-2 py-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors text-[11px] cursor-pointer"
+          className="flex items-center gap-1.5 px-2 py-0.5 rounded hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors text-[11px] cursor-pointer min-h-[28px]"
           title="Copy code to clipboard"
         >
           {copied ? (
@@ -45,7 +45,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, code }) => {
           )}
         </button>
       </div>
-      <div className="p-3.5 overflow-x-auto text-xs font-mono text-slate-200 leading-relaxed selection:bg-sky-500/30">
+      <div className="p-2.5 sm:p-3.5 overflow-x-auto text-[11px] sm:text-xs font-mono text-slate-200 leading-relaxed selection:bg-sky-500/30">
         <pre className="whitespace-pre">{code}</pre>
       </div>
     </div>
@@ -133,11 +133,13 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, onC
               key={match.index}
               type="button"
               onClick={() => onCitationClick(filename, page)}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-medium cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-medium cursor-pointer transition-colors max-w-full align-middle"
               title={`Inspect citation from ${filename} on page ${page}`}
             >
-              <Bookmark className="w-3 h-3 text-sky-400" />
-              <span>{filename} (p. {page})</span>
+              <Bookmark className="w-3 h-3 text-sky-400 flex-shrink-0" />
+              <span className="truncate max-w-[140px] sm:max-w-[280px] inline-block align-bottom">
+                {filename} (p. {page})
+              </span>
             </button>
           );
         } else {

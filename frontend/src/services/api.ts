@@ -21,13 +21,12 @@ export const resolveApiBase = (): string => {
     return strippedDev.endsWith('/api') ? strippedDev : `${strippedDev}/api`;
   }
 
-  // In production (Vercel), prioritize VITE_API_BASE_URL with fallback to deployed Render backend
-  const rawUrl = envUrl || 'https://hybrid-rag-over-a-niche-corpus.onrender.com';
+  // In production (Vercel), prioritize VITE_API_BASE_URL.
+  // Fall back to the deployed Render backend if VITE_API_BASE_URL is not set or set to '/api'.
+  const rawUrl = (!envUrl || envUrl === '/api')
+    ? 'https://hybrid-rag-over-a-niche-corpus.onrender.com'
+    : envUrl;
   const stripped = rawUrl.replace(/\/+$/, '');
-
-  if (!stripped || stripped === '/api') {
-    return '/api';
-  }
 
   return stripped.endsWith('/api') ? stripped : `${stripped}/api`;
 };
@@ -54,6 +53,17 @@ export const isLocalMode = (): boolean => {
 export const getDocumentFileUrl = (docId: string, pageNumber?: number): string => {
   const base = `${API_BASE}/documents/${encodeURIComponent(docId)}/file`;
   return pageNumber ? `${base}#page=${pageNumber}` : base;
+};
+
+/**
+ * Returns the URL to interactive Swagger API documentation (/docs).
+ */
+export const getDocsUrl = (): string => {
+  if (isLocalMode()) {
+    return 'http://127.0.0.1:8000/docs';
+  }
+  const root = API_BASE.replace(/\/api\/?$/, '');
+  return `${root}/docs`;
 };
 
 /**
